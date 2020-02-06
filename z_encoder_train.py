@@ -11,30 +11,34 @@ from utils import chunks
 
 
 
-sketch_encoder = encoder(in_dim=2048,z_dim = params.glove_dim)
-sketch_encoder.cuda(params.gpu_name)
+encoder_model = encoder(in_dim=2048,z_dim = params.glove_dim)
+encoder_model.cuda(params.gpu_name)
 
-sketch_x_train = np.load('/home/adarsh/project/disentanglement/saved_features/da_sketchy_feature_train.npy',allow_pickle=True)
-sketch_y_train = np.load('/home/adarsh/project/disentanglement/saved_features/da_sketchy_label_train.npy',allow_pickle=True)
+x_train = np.load('/home/adarsh/project/disentanglement/saved_features/da_sketchy_feature_train.npy',allow_pickle=True)
+y_train = np.load('/home/adarsh/project/disentanglement/saved_features/da_sketchy_label_train.npy',allow_pickle=True)
 
 sketch_x_val = np.load('/home/adarsh/project/disentanglement/saved_features/da_sketchy_feature_val.npy',allow_pickle=True)
 sketch_y_val = np.load('/home/adarsh/project/disentanglement/saved_features/da_sketchy_label_val.npy',allow_pickle=True)
 
-sketch_y_train = np.array(list(map(int,sketch_y_train)))
+y_train = np.array(list(map(int,y_train)))
 
-def train(sketch_x_train,sketch_y_train, x_val, y_val):
-    optimizer = torch.optim.Adam( sketch_encoder.parameters(), lr = 0.00002, betas=[0.8,0.99], weight_decay=0.05 )
+def train_z_encoder(encoder_model, feature_dict, dump_location):
+
+    x_train, y_train = feature_dict['train']['feature'], feature_dict['train']['label']
+    x_val, y_val = feature_dict['val']['feature'], feature_dict['val']['label']
+
+    optimizer = torch.optim.Adam( encoder_model.parameters(), lr = 0.00002, betas=[0.8,0.99], weight_decay=0.05 )
 
     for epoch in range( params.num_epochs_pretrain ):
-        sketch_encoder.train()
+        encoder_model.train()
 
-        index = np.arange(len(sketch_y_train))
+        index = np.arange(len(y_train))
         random.shuffle(index)
-        sketch_x_train = sketch_x_train[index]
-        sketch_y_train = sketch_y_train[index]
+        x_train = x_train[index]
+        y_train = y_train[index]
         total_correct = 0
         total_count = 0
-        for step, (features, labels) in enumerate( zip(chunks(sketch_x_train), chunks(sketch_y_train)) ):
+        for step, (features, labels) in enumerate( zip(chunks(x_train), chunks(y_train)) ):
 
             features = torch.tensor(features)
             labels = torch.tensor(labels,dtype=torch.long)
@@ -45,7 +49,7 @@ def train(sketch_x_train,sketch_y_train, x_val, y_val):
 
             optimizer.zero_grad()
             
-            preds = sketch_encoder(features)
+            preds = encoder_model(features)
             loss, correct, count = distance_loss( preds, labels, .5 )
 
             loss.backward()
@@ -59,33 +63,33 @@ def train(sketch_x_train,sketch_y_train, x_val, y_val):
                     .format(epoch + 1,
                             params.num_epochs_pretrain,
                             step + 1,
-                            int(len(sketch_x_train)/params.batch_size),
+                            int(len(x_train)/params.batch_size),
                             loss.data.item()))
 
         print('accuracy after {} epoch is {}'.format(epoch,total_correct/total_count))
         # eval model on test set
         
         if(epoch %10 == 9):
-            validation(sketch_encoder, x_val, y_val)
+            validation(encoder_model, x_val, y_val)
 
         # # save model parameters
         # if ((epoch + 1) % params.save_step_pre == 0):
-        #     save_model(source_encoder, "ADDA-source-encoder-{}.pt".format(epoch + 1))
+        #     save_model(source_encoder_model, "ADDA-source-encoder_model-{}.pt".format(epoch + 1))
         #     save_model(
         #         source_classifier, "ADDA-source-classifier-{}.pt".format(epoch + 1))
         # if ((epoch + 1) % params.eval_step_pre == 0):
-        #     eval_src( source_encoder,source_classifier,data_loader,
+        #     eval_src( source_encoder_model,source_classifier,data_loader,
         #                 split_type='val',gpu_flag=gpu_flag, gpu_name=gpu_name)
-        #     eval_tgt( source_encoder,source_classifier,target_data_loader,
+        #     eval_tgt( source_encoder_model,source_classifier,target_data_loader,
         #                 split_type='val',gpu_flag=gpu_flag, gpu_name=gpu_name)
 
 
 
 
     # # save final model
-    torch.save(sketch_encoder, "sketch_encoder.pt")
+    torch.save(encoder_model, dump_location)
 
-    return sketch_encoder
+    return encoder_model
 
 
 def validation(model, x_val, y_val):
@@ -124,10 +128,10 @@ def validation(model, x_val, y_val):
 
 
 
-sketch_encoder = train(sketch_x_train,sketch_y_train, sketch_x_val, sketch_y_val)
-# sketch_encoder = torch.load('sketch_encoder.pt')
+# encoder_model = train(x_train,y_train, sketch_x_val, sketch_y_val)
+# # encoder = torch.load('encoder.pt')
 
-quick_draw_x_val = np.load('/home/adarsh/project/disentanglement/saved_features/da_quick_draw_feature_val.npy',allow_pickle=True)
-quick_draw_y_val = np.load('/home/adarsh/project/disentanglement/saved_features/da_quick_draw_label_val.npy',allow_pickle=True)
+# quick_draw_x_val = np.load('/home/adarsh/project/disentanglement/saved_features/da_quick_draw_feature_val.npy',allow_pickle=True)
+# quick_draw_y_val = np.load('/home/adarsh/project/disentanglement/saved_features/da_quick_draw_label_val.npy',allow_pickle=True)
 
-validation(sketch_encoder,quick_draw_x_val, quick_draw_y_val)
+# validation(encoder,quick_draw_x_val, quick_draw_y_val)

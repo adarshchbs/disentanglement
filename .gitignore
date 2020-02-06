@@ -134,3 +134,5 @@ best_model.pth.tar
 glove*
 resnet_50_da.pt 
 sketch_encoder.pt
+/dataset/*
+/extra/*.p

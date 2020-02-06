@@ -59,3 +59,19 @@ def preprocess_image_1(array, split_type, use_gpu = True, gpu_name = 'cuda:0'):
 
     return array_preprocess
 
+
+def preprocess_image_new(array, split_type, use_gpu = True, gpu_name = 'cuda:0'):
+    array_preprocess = []
+    for i in array:
+        if(i.mode == 'L'):
+            array_preprocess.append( data_transforms_1[split_type](i) )
+        else:
+            array_preprocess.append( data_transforms[split_type](i) )
+
+    if( use_gpu == True ):
+        array_preprocess = torch.stack(array_preprocess).cuda(gpu_name)
+    else:
+        array_preprocess = torch.stack(array_preprocess)
+
+    return array_preprocess
+
