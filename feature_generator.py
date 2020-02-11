@@ -4,7 +4,7 @@ import numpy as np
 import pickle
 
 from image_loader import image_loader_from_file
-from preprocess import preprocess_image_1, preprocess_image, preprocess_image_new
+from preprocess import preprocess_image
 import network
 import params
 
@@ -40,7 +40,7 @@ def model_output(model, data_loader, split_type, repeat_num ):
     label_array = []
 
     for _, (images, labels) in zip(range(repeat_num*data_loader.size[split_type]), data_loader.image_gen(split_type = split_type)):
-        images = preprocess_image_new( array = images,
+        images = preprocess_image( array = images,
                                     split_type = split_type,
                                     use_gpu = params.gpu_flag, gpu_name= params.gpu_name  )
 

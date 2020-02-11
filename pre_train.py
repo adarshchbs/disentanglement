@@ -4,7 +4,7 @@ from torch import nn
 
 import params
 from network import ResNetFc
-from preprocess import preprocess_image_new
+from preprocess import preprocess_image
 
 def train_network( data_loader, dump_location ):
 
@@ -23,7 +23,7 @@ def train_network( data_loader, dump_location ):
     
         for step, ( images, labels ) in enumerate( data_loader.image_gen('train') ):
 
-            images = preprocess_image_new( array = images,
+            images = preprocess_image( array = images,
                                            split_type = 'train',
                                            use_gpu = params.gpu_flag,
                                            gpu_name = params.gpu_name )
@@ -75,7 +75,7 @@ def eval_src( model, data_loader ):
 
     for (images, labels) in data_loader.image_gen(split_type='val'):
 
-        images = preprocess_image_new( array = images,
+        images = preprocess_image( array = images,
                                            split_type = 'train',
                                            use_gpu = params.gpu_flag,
                                            gpu_name = params.gpu_name )
