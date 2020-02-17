@@ -7,42 +7,44 @@ from torch import nn
 from networks import encoder, decoder, adv_classifier, encoder_without_dropout
 import params
 from utils import chunks
-import load_data
+# import load_data
 
-style_encoder = encoder_without_dropout(in_dim = 2048, z_dim = params.glove_dim)
-decoder = decoder(params.glove_dim)
-adv_classifier = adv_classifier(feat_dim = params.glove_dim, num_classes = 87)
-z_encoder = torch.load(params.path_sketch_z_encoder)
+# style_encoder = encoder_without_dropout(in_dim = 2048, z_dim = params.glove_dim)
+# decoder = decoder(params.glove_dim)
+# adv_classifier = adv_classifier(feat_dim = params.glove_dim, num_classes = 87)
+# z_encoder = torch.load(params.path_sketch_z_encoder)
 
-style_encoder.cuda(params.gpu_name)
-decoder.cuda(params.gpu_name)
-adv_classifier.cuda(params.gpu_name)
-z_encoder.cuda(params.gpu_name)
+# style_encoder.cuda(params.gpu_name)
+# decoder.cuda(params.gpu_name)
+# adv_classifier.cuda(params.gpu_name)
+# z_encoder.cuda(params.gpu_name)
 
 
 
-def train_s_encoder(z_encoder, s_encoder, decoder, adv_classifier, train_x, train_y):
+def train_s_encoder(z_encoder, s_encoder, decoder, adv_classifier, feature_dict, dump_location):
 
-    z_encoder.eval()
     optimizer = torch.optim.Adam( list(s_encoder.parameters())+
                                 list(decoder.parameters())+
                                 list(adv_classifier.parameters()),
-                                lr = 0.0001, betas=[0.8,0.99], weight_decay=0.01 )
+                                lr = 0.0002, weight_decay=0.01 )
 
     criterion = nn.CrossEntropyLoss()
+    
+    x_train, y_train = feature_dict['train']['feature'], feature_dict['train']['label']
+    x_val, y_val = feature_dict['val']['feature'], feature_dict['val']['label']
 
     for epoch in range( params.num_epochs_style ):
         s_encoder.train()
         decoder.train()
         adv_classifier.train()
 
-        index = np.arange(len(train_y))
+        index = np.arange(len(y_train))
         random.shuffle(index)
-        train_x = train_x[index]
-        train_y = train_y[index]
+        x_train = x_train[index]
+        y_train = y_train[index]
         total_correct = 0
         total_count = 0
-        for step, (features, labels) in enumerate( zip(chunks(train_x), chunks(train_y)) ):
+        for step, (features, labels) in enumerate( zip(chunks(x_train), chunks(y_train)) ):
 
             features = torch.tensor(features)
             labels = torch.tensor(labels,dtype=torch.long)
@@ -80,13 +82,13 @@ def train_s_encoder(z_encoder, s_encoder, decoder, adv_classifier, train_x, trai
                     .format(epoch + 1,
                             params.num_epochs_style,
                             step + 1,
-                            int(len(train_x)/params.batch_size),
+                            int(len(x_train)/params.batch_size),
                             r_loss.data.item(),
                             adv_loss.data.item(),
                             total_loss.data.item()))
 
         print('accuracy after {} epoch is {}'.format(epoch+1,total_correct/total_count))
-        validation_loss(z_encoder,s_encoder,decoder)
+        validation_loss(z_encoder,s_encoder,decoder, x_val, y_val)
         # eval model on test set
         
         # if(epoch %10 == 9):
@@ -106,38 +108,34 @@ def train_s_encoder(z_encoder, s_encoder, decoder, adv_classifier, train_x, trai
 
 
 
-    # # save final model
-    # torch.save(sketch_encoder, "sketch_encoder.pt")
+    # save final model
+    torch.save(s_encoder,dump_location)
 
-    return s_encoder, decoder, adv_classifier
+    return s_encoder#, decoder, adv_classifier
 
 
-def validation_loss(z_encoder, s_encoder, decoder):
+def validation_loss(z_encoder, s_encoder, decoder, x_val, y_val):
     r_loss = 0
     count = 0
-    x_val = load_data.sketch_x_val
-    y_val = load_data.sketch_y_val
-    z_encoder.eval()
-    s_encoder.eval()
-    decoder.eval()
-    for step, (features, labels) in enumerate( zip(chunks(x_val), chunks(y_val)) ):
+    with torch.no_grad():
+        for step, (features, labels) in enumerate( zip(chunks(x_val), chunks(y_val)) ):
 
-        features = torch.tensor(features)
-        labels = torch.tensor(labels,dtype=torch.long)
-    
-        if(params.gpu_flag == True):
-            labels = labels.cuda(params.gpu_name)
-            features = features.cuda(params.gpu_name)
-
+            features = torch.tensor(features)
+            labels = torch.tensor(labels,dtype=torch.long)
         
-        z_vector = z_encoder(features)
-        s_vector = s_encoder(features)
-        r_vector = decoder(z_vector,s_vector)
+            if(params.gpu_flag == True):
+                labels = labels.cuda(params.gpu_name)
+                features = features.cuda(params.gpu_name)
 
-        r_loss = torch.sum( (features - r_vector)**2)/100
-        count += labels.shape[0]
+            
+            z_vector = z_encoder(features)
+            s_vector = s_encoder(features)
+            r_vector = decoder(z_vector,s_vector)
+
+            r_loss += torch.sum( (features - r_vector)**2)/100
+            count += labels.shape[0]
 
     print("validation loss {:.5f}".format(r_loss/count))
 
-a,b,c = train_s_encoder(z_encoder,style_encoder, decoder, adv_classifier, load_data.sketch_x_train, load_data.sketch_y_train)
+# a,b,c = train_s_encoder(z_encoder,style_encoder, decoder, adv_classifier, load_data.sketch_x_train, load_data.sketch_y_train)
 

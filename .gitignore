@@ -136,3 +136,5 @@ resnet_50_da.pt
 sketch_encoder.pt
 /dataset/*
 /extra/*.p
+/backup_models/*
+/saved_model/*

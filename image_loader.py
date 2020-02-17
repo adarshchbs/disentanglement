@@ -8,6 +8,7 @@ import random
 import re
 import time
 import pickle
+import params
 
 class image_loader_from_file():
     
@@ -44,7 +45,7 @@ class image_loader_from_file():
 
         return images, np.array(labels)
 
-    def image_gen( self, split_type = "train", batch_size = 4 ):
+    def image_gen( self, split_type = "train", batch_size = params.batch_size ):
         self.batch_size = batch_size
         index = np.arange(len(self.dir_image_labels[split_type]))
 

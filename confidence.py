@@ -14,11 +14,11 @@ import params
 # for i in classifier:
 #     print(classifier[i].shape)
 
-model_path = '/home/iacv/project/disentanglement/resnet_50_da.pt'
+model_path = '/home/adarsh/project/disentanglement/resnet_50_da.pt'
 
-model = torch.load(model_path,map_location=torch.device('cpu'))
+model = torch.load(model_path,map_location=torch.device(params.gpu_name))
 
-weight = model[0].fc.weight.detach().numpy()
+weight = model[0].fc.weight.cpu().detach().numpy()
 
 weight_np = np.zeros((2048,87))
 
@@ -28,7 +28,17 @@ for i, w in enumerate(weight):
 # print(weight_np.shape)
 
 
-bias = model[0].fc.bias.detach().numpy()
+bias = model[0].fc.bias.cpu().detach().numpy()
+
+def make_tensor(array,dtype = None):
+    if(dtype is None):
+        t = torch.tensor(array)
+    else:
+        t = torch.tensor(array,dtype=dtype)
+    if(params.gpu_flag):
+        t = t.cuda(params.gpu_name)
+
+    return t
 
 def classifier(features):
     pred =  features @ weight_np + bias
@@ -190,13 +200,13 @@ def train_network( features, labels, alpha, dump_location ):
 
             try:
                 
-                f1 = torch.tensor(f1)
-                f2 = torch.tensor(f2)
+                f1 = make_tensor(f1)
+                f2 = make_tensor(f2)
                 # norm_features = alpha * f1 + (1-alpha)*f2
 
-                # norm_features = torch.tensor(norm_features)
+                # norm_features = make_tensor(norm_features)
 
-                labels = torch.tensor(np.vstack([l1,l2]),dtype=torch.long)
+                labels = make_tensor(np.vstack([l1,l2]),dtype=torch.long)
 
 
 
@@ -206,9 +216,9 @@ def train_network( features, labels, alpha, dump_location ):
                 loss_1 = loss_norm( preds_1, labels, alpha, step )
                 
                 f_s_1, f_s_2, l_s = same_class_sample()
-                f_s_1, f_s_2 = torch.tensor(f_s_1), torch.tensor(f_s_2)
+                f_s_1, f_s_2 = make_tensor(f_s_1), make_tensor(f_s_2)
                 preds_2 = model(f_s_1,f_s_2,alpha)
-                l_s = torch.tensor(l_s, dtype=torch.long)
+                l_s = make_tensor(l_s, dtype=torch.long)
                 loss_2 = criterion(preds_2,l_s)
 
                 if(epoch <2):
@@ -235,8 +245,8 @@ def train_network( features, labels, alpha, dump_location ):
     return model
 
 
-conf_model = train_network(load_data.sketch_x_train,load_data.sketch_y_train, 0.8,'/home/iacv/project/disentanglement/saved_model/conf_model.pt')
-conf_model = model = torch.load('/home/iacv/project/disentanglement/saved_model/conf_model.pt')
+conf_model = train_network(load_data.sketch_x_train,load_data.sketch_y_train, 0.8,'/home/adarsh/project/disentanglement/saved_model/conf_model.pt')
+conf_model = model = torch.load('/home/adarsh/project/disentanglement/saved_model/conf_model.pt')
 
 
 
@@ -271,13 +281,13 @@ print(np.sum(pred_correct)/len(pred_correct))
 
 
 generated_feature,_,_ = same_class_sample(pred_label)
-generated_feature = torch.tensor(generated_feature)
+generated_feature = make_tensor(generated_feature)
 conf_model.eval()
-conf = conf_model(torch.tensor(x_val),generated_feature,0.8)
+conf = conf_model(make_tensor(x_val),generated_feature,0.8)
 temp = torch.exp(conf)
 temp = temp/torch.sum(temp,dim=1).reshape(l,-1)
 
-pred_label_new = torch.argmax(temp,dim=1).detach().numpy()
+pred_label_new = torch.argmax(temp,dim=1).cpu().detach().numpy()
 temp = (pred_label_new == pred_label)
 print(np.sum(temp))
 pred_correct = (pred_label_new[temp] == y_val[temp])

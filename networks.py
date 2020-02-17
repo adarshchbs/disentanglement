@@ -41,13 +41,15 @@ class encoder_without_dropout(nn.Module):
 class decoder(nn.Module):
     def __init__(self, feat_dim):
         super( decoder, self ).__init__()
-        self.layer_1 = nn.Linear(in_features = 2*feat_dim, out_features = feat_dim//2)
+        self.layer_1 = nn.Linear(in_features = 2*feat_dim, out_features = feat_dim)
+        self.batch_norm = nn.BatchNorm1d(feat_dim)
         self.relu = nn.ReLU()
-        self.layer_2 = nn.Linear(in_features = feat_dim//2, out_features = params.x_dim )
+        self.layer_2 = nn.Linear(in_features = feat_dim, out_features = params.x_dim )
 
     def forward(self, z_input, s_input):
         concat_feature = torch.cat( ( z_input, s_input ), 1 )
         ret = self.layer_1(concat_feature)
+        ret = self.batch_norm(ret)
         ret = self.relu(ret)
         ret = self.layer_2(ret)
         return ret
@@ -77,3 +79,21 @@ class adv_classifier(nn.Module):
         # ret = self.relu(ret)
         return ret
 
+
+
+class adv_network(nn.Module):
+    def __init__(self, feat_dim):
+        super( adv_network, self ).__init__()
+        self.grad_rev = GradientReversal()
+        self.layer_1 = nn.Linear(in_features = feat_dim, out_features = 128)
+        self.bn = nn.BatchNorm1d(num_features = 128)
+        self.relu = nn.ReLU()
+        self.linear_2 = nn.Linear(in_features = 128, out_features = 2)
+
+    def forward(self, input_):
+        ret = self.grad_rev.apply(input_)
+        ret = self.layer_1(ret)
+        ret = self.bn(ret)
+        ret = self.relu(ret)
+        ret = self.linear_2(ret)
+        return ret

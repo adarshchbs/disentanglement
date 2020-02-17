@@ -1,7 +1,7 @@
 import numpy as np 
 import torch
 from torch import nn 
-
+import time
 import params
 from network import ResNetFc
 from preprocess import preprocess_image
@@ -10,6 +10,9 @@ def train_network( data_loader, dump_location ):
 
     model = ResNetFc( resnet_name = 'ResNet50', use_bottleneck = False,
                       bottleneck_dim= 256, new_cls= True, class_num = params.num_class)
+    
+    if(params.gpu_flag):
+        model.cuda(params.gpu_name)
 
     optimizer = torch.optim.Adam(  model.parameters() ,
                             lr = params.pretrain_lr,
@@ -19,10 +22,10 @@ def train_network( data_loader, dump_location ):
     
     criterion = nn.CrossEntropyLoss()
 
-    for epoch in range( params.num_epochs_pretrain ):
+    for epoch in range( 5 ):
     
         for step, ( images, labels ) in enumerate( data_loader.image_gen('train') ):
-
+            
             images = preprocess_image( array = images,
                                            split_type = 'train',
                                            use_gpu = params.gpu_flag,
@@ -52,8 +55,8 @@ def train_network( data_loader, dump_location ):
                               loss.data.item()))
                 # print(list(source_classifier.parameters()))
         # eval model on test set
-        if ((epoch + 1) % params.eval_step_pre == 0):
-            eval_src( model, data_loader)
+    
+        eval_src( model, data_loader)
 
     
     # save model parameters
@@ -67,33 +70,31 @@ def eval_src( model, data_loader ):
     loss = 0
     accuracy = 0 
 
-    model.eval()
+    with torch.no_grad():
+        criterion = nn.CrossEntropyLoss()
+        correct = 0
+        total = 0
 
-    criterion = nn.CrossEntropyLoss()
-    correct = 0
-    total = 0
+        for (images, labels) in data_loader.image_gen(split_type='val',batch_size=params.eval_batch_size):
 
-    for (images, labels) in data_loader.image_gen(split_type='val'):
+            images = preprocess_image( array = images,
+                                            split_type = 'train',
+                                            use_gpu = params.gpu_flag,
+                                            gpu_name = params.gpu_name )
+            labels = torch.tensor(labels,dtype=torch.long)
 
-        images = preprocess_image( array = images,
-                                           split_type = 'train',
-                                           use_gpu = params.gpu_flag,
-                                           gpu_name = params.gpu_name )
+            if( params.gpu_flag == True):
+                labels = labels.cuda(params.gpu_name)
+            _, preds = model(images)
+            loss += criterion( preds, labels ).item()
 
-        labels = torch.tensor(labels,dtype=torch.long)
+            _, predicted = torch.max(preds.data,1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+        
+        loss /= data_loader.size['val']
+        # accuracy /= len( data_loader )
+        accuracy = correct/total
 
-        if( params.gpu_flag == True):
-            labels = labels.cuda(params.gpu_name)
-        _, preds = model(images)
-        loss += criterion( preds, labels ).item()
-
-        _, predicted = torch.max(preds.data,1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
-    
-    loss /= data_loader.size['val']
-    # accuracy /= len( data_loader )
-    accuracy = correct/total
-
-    print("Avg Loss = {}, Avg Accuracy = {:2%}".format(loss, accuracy))
+        print("Avg Loss = {}, Avg Accuracy = {:2%}".format(loss, accuracy))
 

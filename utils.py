@@ -1,5 +1,6 @@
 import params
 import pickle
+import torch
 
 def chunks(lst, n=params.batch_size):
     """Yield successive n-sized chunks from lst."""
@@ -26,3 +27,22 @@ def pickle_load(file_path):
         file = pickle.load( f )
 
     return file
+
+def make_tensor(array):
+    array = torch.tensor(array)
+    if(params.gpu_flag):
+        array = array.cuda(params.gpu_name)
+
+    return array
+
+def cuda(model):
+    if(params.gpu_flag):
+        model.cuda(params.gpu_name)
+# import numpy as np 
+# from time import time
+
+# s = time()
+# a = np.random.random((1000,1000))
+# a = a*a
+# end = time()
+# print('time taken')

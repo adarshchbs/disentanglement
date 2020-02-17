@@ -1,13 +1,14 @@
 import os
 
-gpu_flag = False
-gpu_name = 'cuda:1'
+gpu_flag = True
+gpu_name = 'cuda:0'
 
 x_dim = 2048
 num_class = 87
-num_query = 10
+num_query = 5
 
-batch_size = 32
+batch_size = 128
+eval_batch_size = 512
 glove_dim = 200
 
 pretrain_lr = 1e-4
@@ -16,17 +17,17 @@ eval_step_pre = 1
 
 fusion_iter_len = 100000
 
-num_epochs_pretrain = 10
+num_epochs_pretrain = 30
 num_epochs_style = 30
-num_epochs_fusion = 10
-log_step_pre = 20
+num_epochs_fusion = 50
+log_step_pre = 60
 
-path_class_list = '/home/iacv/project/disentanglement/extra/common_class_list.txt'
+path_class_list = '/home/adarsh/project/disentanglement/extra/common_class_list.txt'
 
-dir_saved_model = '/home/iacv/project/disentanglement/saved_model/'
-dir_saved_feature = '/home/iacv/project/disentanglement/saved_features/'
-dir_dataset = '/home/iacv/project/disentanglement/dataset/'
-dir_extra = '/home/iacv/project/disentanglement/extra/'
+dir_saved_model = '/home/adarsh/project/disentanglement/saved_model/'
+dir_saved_feature = '/home/adarsh/project/disentanglement/saved_features/'
+dir_dataset = '/home/adarsh/project/disentanglement/dataset/'
+dir_extra = '/home/adarsh/project/disentanglement/extra/'
 
 os.makedirs( dir_saved_model, exist_ok = True)
 os.makedirs( dir_saved_feature, exist_ok = True )
@@ -34,7 +35,7 @@ os.makedirs( dir_extra, exist_ok = True )
 
 
 path_model_image = dir_saved_model + 'resnet_50_image.pt'
-path_model_sketchy = dir_saved_feature + 'resnet_50_sketchy.pt'
+path_model_sketchy = '/home/adarsh/project/disentanglement/saved_model/resnet_50_sketchy.pt'
 
 path_z_encoder_sketchy = dir_saved_model + 'z_encoder_sketch.pt'
 path_s_encoder_sketchy = dir_saved_model + 's_encoder_sketch.pt'
@@ -66,4 +67,4 @@ path_model = '/home/adarsh/project/disentanglement/resnet_50_da.pt'
 
 path_sketch_z_encoder = '/home/adarsh/project/disentanglement/sketch_encoder.pt'
 
-path_glove_vector = '/home/iacv/project/disentanglement/glove_vector'
+path_glove_vector = '/home/adarsh/project/disentanglement/glove_vector'

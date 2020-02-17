@@ -11,23 +11,23 @@ from utils import chunks
 
 
 
-encoder_model = encoder(in_dim=2048,z_dim = params.glove_dim)
-encoder_model.cuda(params.gpu_name)
+# encoder_model = encoder(in_dim=2048,z_dim = params.glove_dim)
+# encoder_model.cuda(params.gpu_name)
 
-x_train = np.load('/home/adarsh/project/disentanglement/saved_features/da_sketchy_feature_train.npy',allow_pickle=True)
-y_train = np.load('/home/adarsh/project/disentanglement/saved_features/da_sketchy_label_train.npy',allow_pickle=True)
+# x_train = np.load('/home/adarsh/project/disentanglement/saved_features/da_sketchy_feature_train.npy',allow_pickle=True)
+# y_train = np.load('/home/adarsh/project/disentanglement/saved_features/da_sketchy_label_train.npy',allow_pickle=True)
 
-sketch_x_val = np.load('/home/adarsh/project/disentanglement/saved_features/da_sketchy_feature_val.npy',allow_pickle=True)
-sketch_y_val = np.load('/home/adarsh/project/disentanglement/saved_features/da_sketchy_label_val.npy',allow_pickle=True)
+# sketch_x_val = np.load('/home/adarsh/project/disentanglement/saved_features/da_sketchy_feature_val.npy',allow_pickle=True)
+# sketch_y_val = np.load('/home/adarsh/project/disentanglement/saved_features/da_sketchy_label_val.npy',allow_pickle=True)
 
-y_train = np.array(list(map(int,y_train)))
+# y_train = np.array(list(map(int,y_train)))
 
 def train_z_encoder(encoder_model, feature_dict, dump_location):
 
     x_train, y_train = feature_dict['train']['feature'], feature_dict['train']['label']
     x_val, y_val = feature_dict['val']['feature'], feature_dict['val']['label']
 
-    optimizer = torch.optim.Adam( encoder_model.parameters(), lr = 0.00002, betas=[0.8,0.99], weight_decay=0.05 )
+    optimizer = torch.optim.Adam( encoder_model.parameters(), lr = 0.0001, weight_decay=0.002 )
 
     for epoch in range( params.num_epochs_pretrain ):
         encoder_model.train()
@@ -69,7 +69,7 @@ def train_z_encoder(encoder_model, feature_dict, dump_location):
         print('accuracy after {} epoch is {}'.format(epoch,total_correct/total_count))
         # eval model on test set
         
-        if(epoch %10 == 9):
+        if(epoch %10 == 5):
             validation(encoder_model, x_val, y_val)
 
         # # save model parameters

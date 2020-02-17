@@ -31,7 +31,7 @@ def distance_loss(output, lables, alpha):
     dem = torch.sum(dem_factor, dim =1)
     
     prob = num/dem
-    loss = torch.sum(-torch.log(prob))/lables.shape[0]
+    loss = torch.sum(-torch.log(prob))/lables.shape[0]/10
     correct = int(torch.sum( (pred_labels == lables)*1))
     
     return loss, correct, lables.shape[0]
