@@ -16,8 +16,8 @@ def retrieve_images(sketch_query, query_label, sketch_z_encoder, image_s_enocode
                     image_feature_dataset, image_label_dataset):
 
     sketch_query = sketch_query.reshape(-1,sketch_query.shape[0])
-
-    query_z_vector = sketch_z_encoder( sketch_query )
+    with torch.no_grad():
+        query_z_vector = sketch_z_encoder( sketch_query )
 
     distance = torch.sum((z_output_image - query_z_vector)**2,dim=1)
     sorted_distance, sorted_arg = torch.sort(distance)
@@ -33,8 +33,8 @@ def retrieve_images(sketch_query, query_label, sketch_z_encoder, image_s_enocode
     _, normalized_sorted_arg = torch.sort(normalized_distance)
 
     retrived_arg = k_closest_arg[normalized_sorted_arg]
-    predicted_label = image_label_dataset[retrived_arg]
-    # predicted_label = image_label_dataset[k_closest_arg]
+    # predicted_label = image_label_dataset[retrived_arg]
+    predicted_label = image_label_dataset[k_closest_arg]
     # print( ' predicated label ',image_label_dataset[sorted_arg])
     # print('query label', query_label)
 

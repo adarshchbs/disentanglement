@@ -56,17 +56,17 @@ if __name__ == "__main__":
         model_image = train_network( data_loader = loader_image,
                                      dump_location = params.path_model_image )
     else:
-        image_model = torch.load( params.path_model_image )
+        image_model = torch.load( params.path_model_image, map_location = torch.device(params.gpu_name) )
         cuda(image_model)
         print('image classification model found. Loading completed')
 
 
     if( not os.path.isfile(params.path_model_sketchy) ):
         print('sketchy classification model not found. Training started.')
-        model_sketchy = train_network( data_loader = loader_sketchy,
+        model_sketchy = train_network( data_loader = loader_quick_draw,
                        dump_location = params.path_model_sketchy )
     else:
-        model_sketchy = torch.load( params.path_model_sketchy )
+        model_sketchy = torch.load( params.path_model_sketchy, map_location = torch.device(params.gpu_name) )
         cuda(model_sketchy)
         print('sketchy classification model found. Loading completed')
 
@@ -117,18 +117,18 @@ if __name__ == "__main__":
                                            dump_location = params.path_z_encoder_image )
 
     else:
-        z_encoder_image = torch.load( params.path_z_encoder_image )
+        z_encoder_image = torch.load( params.path_z_encoder_image, map_location = torch.device(params.gpu_name) )
         cuda(z_encoder_image)
 
     if( not os.path.isfile( params.path_z_encoder_sketchy ) ):
         z_encoder_sketchy = encoder( in_dim = params.x_dim, z_dim = params.glove_dim )
         cuda(z_encoder_sketchy)
         z_encoder_sketchy = train_z_encoder( encoder_model = z_encoder_sketchy,
-                                           feature_dict = features_sketchy_dict,
+                                           feature_dict = features_quickdraw_dict,
                                            dump_location = params.path_z_encoder_sketchy )
 
     else:
-        z_encoder_sketchy = torch.load( params.path_z_encoder_sketchy )
+        z_encoder_sketchy = torch.load( params.path_z_encoder_sketchy, map_location = torch.device(params.gpu_name) )
         cuda(z_encoder_sketchy)
 
     
@@ -139,15 +139,15 @@ if __name__ == "__main__":
         cuda(s_encoder_sketchy)
         cuda(adv_sketchy)
         cuda(decoder_sketchy)
-        s_encoder_sketchy = train_s_encoder( z_encoder =  z_encoder_sketchy,
-                                             s_encoder =  s_encoder_sketchy,
-                                             decoder = decoder_sketchy,
-                                             adv_classifier =  adv_sketchy,
-                                             feature_dict =  features_sketchy_dict,
-                                              dump_location = params.path_s_encoder_sketchy )
+        # s_encoder_sketchy = train_s_encoder( z_encoder =  z_encoder_sketchy,
+        #                                      s_encoder =  s_encoder_sketchy,
+        #                                      decoder = decoder_sketchy,
+        #                                      adv_classifier =  adv_sketchy,
+        #                                      feature_dict =  features_sketchy_dict,
+        #                                       dump_location = params.path_s_encoder_sketchy )
 
     else:
-        s_encoder_sketchy = torch.load( params.path_s_encoder_sketchy )
+        s_encoder_sketchy = torch.load( params.path_s_encoder_sketchy, map_location = torch.device(params.gpu_name) )
         cuda(s_encoder_sketchy)
 
 
@@ -158,15 +158,15 @@ if __name__ == "__main__":
         cuda(s_encoder_image)
         cuda(adv_image)
         cuda(decoder_image)
-        s_encoder_image = train_s_encoder( z_encoder =  z_encoder_image,
-                                             s_encoder =  s_encoder_image,
-                                             decoder = decoder_image,
-                                             adv_classifier =  adv_image,
-                                             feature_dict =  features_image_dict,
-                                              dump_location = params.path_s_encoder_image )
+        # s_encoder_image = train_s_encoder( z_encoder =  z_encoder_image,
+        #                                      s_encoder =  s_encoder_image,
+        #                                      decoder = decoder_image,
+        #                                      adv_classifier =  adv_image,
+        #                                      feature_dict =  features_image_dict,
+        #                                       dump_location = params.path_s_encoder_image )
 
     else:
-        s_encoder_image = torch.load( params.path_s_encoder_image )
+        s_encoder_image = torch.load( params.path_s_encoder_image, map_location = torch.device(params.gpu_name) )
         cuda(s_encoder_image)
 
     if( not os.path.isfile( params.path_fusion_model ) ):
@@ -182,7 +182,7 @@ if __name__ == "__main__":
         #                              dump_location = params.path_fusion_model)
 
     else:
-        fusion_model = torch.load(params.path_fusion_model)
+        fusion_model = torch.load(params.path_fusion_model, map_location = torch.device(params.gpu_name))
         cuda(fusion_model)
 
 

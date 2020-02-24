@@ -138,3 +138,7 @@ sketch_encoder.pt
 /extra/*.p
 /backup_models/*
 /saved_model/*
+/saved_model_wda/*
+/saved_model_qd/*
+/saved_features_qd/*
+/saved_features_wda/*

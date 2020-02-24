@@ -42,6 +42,9 @@ def train_z_encoder(encoder_model, feature_dict, dump_location):
 
             features = torch.tensor(features)
             labels = torch.tensor(labels,dtype=torch.long)
+
+            if(labels.shape[0]==1):
+                continue
         
             if(params.gpu_flag == True):
                 labels = labels.cuda(params.gpu_name)

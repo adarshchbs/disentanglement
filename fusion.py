@@ -129,7 +129,7 @@ def train_triplet(z_encoder_sketch, s_encoder_sketch,
             pos_med = sort_pos[current_batch_size//2]
             neg_med = sort_neg[current_batch_size//2]
 
-            loss = weight * loss_pos - loss_neg + 3
+            loss = weight * loss_pos - loss_neg + 5
             zeros = make_tensor(np.zeros(current_batch_size,dtype=np.float32))
             loss = torch.stack([loss,zeros])
             loss, _ = torch.max(loss, dim = 0)
@@ -204,14 +204,17 @@ def train_triplet(z_encoder_sketch, s_encoder_sketch,
 def fusion_validation( query_feature_arr, query_label_arr, sketch_z_encoder,
                        image_z_encoder, image_s_encoder, fusion_network,
                       image_feature_dataset, image_label_dataset):
+        sketch_z_encoder.eval()
+        image_z_encoder.eval()
+        image_s_encoder.eval()
         total_score = 0
         query_feature_arr = make_tensor(query_feature_arr)
         query_label_arr = make_tensor(query_label_arr)
         image_feature_dataset = make_tensor(image_feature_dataset)
         image_label_dataset = make_tensor(image_label_dataset)
-
-        z_output_image = image_z_encoder(image_feature_dataset)
-        s_output_image = image_s_encoder(image_feature_dataset)
+        with torch.no_grad():
+            z_output_image = image_z_encoder(image_feature_dataset)
+            s_output_image = image_s_encoder(image_feature_dataset)
 
         for query, label in zip(query_feature_arr, query_label_arr):
             _, scores = retrieve_images(query, label, sketch_z_encoder, image_s_encoder,

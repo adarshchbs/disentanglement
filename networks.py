@@ -2,6 +2,26 @@ import torch
 from torch import nn
 import params
 
+class ResNetEncoder(nn.Module):
+    def __init__(self, encoder):
+        super( ResNetEncoder, self ).__init__()
+        # self.restored = False
+        self.encoder = encoder
+    
+    def forward(self, inputs):
+        out = self.encoder(inputs)
+        out = out.view(out.size()[0],out.size()[1])
+        return out
+
+
+class ResNetClassifier(nn.Module):
+    def __init__(self):
+        super( ResNetClassifier, self ).__init__()
+        self.fc2 = nn.Linear( in_features = 2048, out_features = 87, bias= True )
+
+    def forward(self, inputs):
+        out = self.fc2( inputs )
+        return out
 
 class encoder(nn.Module):
     def __init__(self, in_dim, z_dim):

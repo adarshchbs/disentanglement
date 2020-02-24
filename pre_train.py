@@ -22,8 +22,8 @@ def train_network( data_loader, dump_location ):
     
     criterion = nn.CrossEntropyLoss()
 
-    for epoch in range( 5 ):
-    
+    for epoch in range( params.num_epochs_pretrain ):
+        model.train()
         for step, ( images, labels ) in enumerate( data_loader.image_gen('train') ):
             
             images = preprocess_image( array = images,
@@ -69,6 +69,7 @@ def eval_src( model, data_loader ):
 
     loss = 0
     accuracy = 0 
+    model.eval()
 
     with torch.no_grad():
         criterion = nn.CrossEntropyLoss()
@@ -78,14 +79,15 @@ def eval_src( model, data_loader ):
         for (images, labels) in data_loader.image_gen(split_type='val',batch_size=params.eval_batch_size):
 
             images = preprocess_image( array = images,
-                                            split_type = 'train',
+                                            split_type = 'val',
                                             use_gpu = params.gpu_flag,
                                             gpu_name = params.gpu_name )
             labels = torch.tensor(labels,dtype=torch.long)
 
             if( params.gpu_flag == True):
                 labels = labels.cuda(params.gpu_name)
-            _, preds = model(images)
+            with torch.no_grad():
+                _, preds = model(images)
             loss += criterion( preds, labels ).item()
 
             _, predicted = torch.max(preds.data,1)

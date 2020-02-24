@@ -12,7 +12,7 @@ from itertools import cycle
 
 
 def feature_gen( model, loader, dump_location ):
-
+    model.eval()
     # loader = image_loader_from_file(image_path_file)
     with torch.no_grad():
         train = model_output(model = model, data_loader = loader, split_type = 'train', repeat_num = 4)

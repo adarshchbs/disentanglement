@@ -1,6 +1,7 @@
 import params
 import pickle
 import torch
+import numpy as np
 
 def chunks(lst, n=params.batch_size):
     """Yield successive n-sized chunks from lst."""
@@ -22,13 +23,13 @@ class last_k:
             self.deque.appendleft(value)
 
 
-def pickle_load(file_path):
+def pickle_load( file_path : str ) -> dict:
     with open( file_path, 'rb' ) as f:
         file = pickle.load( f )
 
     return file
 
-def make_tensor(array):
+def make_tensor(array : np.ndarray) -> torch.Tensor:
     array = torch.tensor(array)
     if(params.gpu_flag):
         array = array.cuda(params.gpu_name)

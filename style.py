@@ -4,7 +4,7 @@ import random
 import torch
 from torch import nn
 
-from networks import encoder, decoder, adv_classifier, encoder_without_dropout
+import networks
 import params
 from utils import chunks
 # import load_data
@@ -48,7 +48,10 @@ def train_s_encoder(z_encoder, s_encoder, decoder, adv_classifier, feature_dict,
 
             features = torch.tensor(features)
             labels = torch.tensor(labels,dtype=torch.long)
-        
+
+            if(labels.shape[0]==1):
+                continue 
+
             if(params.gpu_flag == True):
                 labels = labels.cuda(params.gpu_name)
                 features = features.cuda(params.gpu_name)
@@ -114,7 +117,14 @@ def train_s_encoder(z_encoder, s_encoder, decoder, adv_classifier, feature_dict,
     return s_encoder#, decoder, adv_classifier
 
 
-def validation_loss(z_encoder, s_encoder, decoder, x_val, y_val):
+def validation_loss(z_encoder : networks.encoder,
+                    s_encoder : networks.encoder_without_dropout,
+                    decoder : networks.decoder,
+                    x_val : np.ndarray,
+                    y_val : np.ndarray ):
+    z_encoder.eval()
+    s_encoder.eval()
+    decoder.eval()
     r_loss = 0
     count = 0
     with torch.no_grad():
@@ -138,4 +148,3 @@ def validation_loss(z_encoder, s_encoder, decoder, x_val, y_val):
     print("validation loss {:.5f}".format(r_loss/count))
 
 # a,b,c = train_s_encoder(z_encoder,style_encoder, decoder, adv_classifier, load_data.sketch_x_train, load_data.sketch_y_train)
-

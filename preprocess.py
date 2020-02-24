@@ -42,11 +42,16 @@ def preprocess_image(array, split_type, use_gpu = True, gpu_name = 'cuda:0'):
     if(split_type == 'test'):
         split_type = 'val'
     array_preprocess = []
+    # time_counter = 0
     for i in array:
+        # start = time.time()
         if(i.mode == 'L'):
             array_preprocess.append( data_transforms_1[split_type](i) )
         else:
             array_preprocess.append( data_transforms[split_type](i) )
+        # end = time.time()
+        # time_counter += (end-start)
+    # print(time_counter)
     if( use_gpu == True ):
         array_preprocess = torch.stack(array_preprocess).cuda(gpu_name)
     else:

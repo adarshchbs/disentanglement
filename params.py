@@ -1,14 +1,14 @@
 import os
 
-gpu_flag = True
-gpu_name = 'cuda:0'
+gpu_flag = False
+gpu_name = 'cpu'
 
 x_dim = 2048
 num_class = 87
 num_query = 5
 
-batch_size = 128
-eval_batch_size = 512
+batch_size = 84
+eval_batch_size = 128
 glove_dim = 200
 
 pretrain_lr = 1e-4
@@ -17,17 +17,19 @@ eval_step_pre = 1
 
 fusion_iter_len = 100000
 
-num_epochs_pretrain = 30
+# num_epochs_pretrain = 30
 num_epochs_style = 30
 num_epochs_fusion = 50
 log_step_pre = 60
 
-path_class_list = '/home/adarsh/project/disentanglement/extra/common_class_list.txt'
+folder_path = os.path.dirname(os.path.realpath(__file__)) + '/'
 
-dir_saved_model = '/home/adarsh/project/disentanglement/saved_model/'
-dir_saved_feature = '/home/adarsh/project/disentanglement/saved_features/'
-dir_dataset = '/home/adarsh/project/disentanglement/dataset/'
-dir_extra = '/home/adarsh/project/disentanglement/extra/'
+path_class_list = folder_path + 'extra/common_class_list.txt'
+
+dir_saved_model = folder_path + 'saved_model_qd/'
+dir_saved_feature = folder_path + 'saved_features_qd/'
+dir_dataset = folder_path + 'dataset/'
+dir_extra = folder_path + 'extra/'
 
 os.makedirs( dir_saved_model, exist_ok = True)
 os.makedirs( dir_saved_feature, exist_ok = True )
@@ -35,7 +37,7 @@ os.makedirs( dir_extra, exist_ok = True )
 
 
 path_model_image = dir_saved_model + 'resnet_50_image.pt'
-path_model_sketchy = '/home/adarsh/project/disentanglement/saved_model/resnet_50_sketchy.pt'
+path_model_sketchy = dir_saved_model + 'resnet_50_sketchy.pt'
 
 path_z_encoder_sketchy = dir_saved_model + 'z_encoder_sketch.pt'
 path_s_encoder_sketchy = dir_saved_model + 's_encoder_sketch.pt'
@@ -63,8 +65,8 @@ path_sketchy_file_list = dir_extra + 'sketchy_file_list.p'
 path_quickdraw_file_list = dir_extra + 'quick_draw_file_list.p'
 
 
-path_model = '/home/adarsh/project/disentanglement/resnet_50_da.pt'
+path_model = folder_path + 'resnet_50_da.pt'
 
-path_sketch_z_encoder = '/home/adarsh/project/disentanglement/sketch_encoder.pt'
+path_sketch_z_encoder = folder_path + 'sketch_encoder.pt'
 
-path_glove_vector = '/home/adarsh/project/disentanglement/glove_vector'
+path_glove_vector = folder_path + 'glove_vector'
